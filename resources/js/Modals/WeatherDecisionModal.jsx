@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import WeatherNotifyModal from './WeatherNotifyModal';
-import WeatherAlertModal from './WeatherAlertModal';
+
+const WeatherNotifyModal = lazy(() => import('./WeatherNotifyModal'));
+const WeatherAlertModal = lazy(() => import('./WeatherAlertModal'));
 
 export default function WeatherDecisionModal({ isOpen, onClose }) {
     const [isRendering, setIsRendering] = useState(isOpen);
     const [isVisible, setIsVisible] = useState(false);
     const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
     const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+    const [hasLoadedNotifyModal, setHasLoadedNotifyModal] = useState(false);
+    const [hasLoadedAlertModal, setHasLoadedAlertModal] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -19,6 +22,14 @@ export default function WeatherDecisionModal({ isOpen, onClose }) {
             return () => clearTimeout(timer);
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        if (isNotifyModalOpen) setHasLoadedNotifyModal(true);
+    }, [isNotifyModalOpen]);
+
+    useEffect(() => {
+        if (isAlertModalOpen) setHasLoadedAlertModal(true);
+    }, [isAlertModalOpen]);
 
     const handleNotifyClick = () => {
         setIsNotifyModalOpen(true);
@@ -85,14 +96,22 @@ export default function WeatherDecisionModal({ isOpen, onClose }) {
                 </div>
             </div>
 
-            <WeatherNotifyModal
-                isOpen={isNotifyModalOpen}
-                onClose={handleNotifyClose}
-            />
-            <WeatherAlertModal
-                isOpen={isAlertModalOpen}
-                onClose={handleAlertClose}
-            />
+            {(hasLoadedNotifyModal || isNotifyModalOpen) && (
+                <Suspense fallback={null}>
+                    <WeatherNotifyModal
+                        isOpen={isNotifyModalOpen}
+                        onClose={handleNotifyClose}
+                    />
+                </Suspense>
+            )}
+            {(hasLoadedAlertModal || isAlertModalOpen) && (
+                <Suspense fallback={null}>
+                    <WeatherAlertModal
+                        isOpen={isAlertModalOpen}
+                        onClose={handleAlertClose}
+                    />
+                </Suspense>
+            )}
         </>
     );
 }

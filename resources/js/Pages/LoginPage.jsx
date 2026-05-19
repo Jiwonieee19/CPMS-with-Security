@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import companyLogo from '../assets/company-logo.png';
 import loginBackground from '../assets/login-background.png';
-import ForgetPasswordModal from '../Modals/ForgetPasswordModal';
+
+const ForgetPasswordModal = lazy(() => import('../Modals/ForgetPasswordModal'));
 
 export default function LoginPage() {
 
@@ -12,6 +13,7 @@ export default function LoginPage() {
     });
 
     const [showForgetPasswordModal, setShowForgetPasswordModal] = useState(false);
+    const [hasLoadedForgetPasswordModal, setHasLoadedForgetPasswordModal] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -65,6 +67,7 @@ export default function LoginPage() {
 
     const handleForgotPasswordClick = (e) => {
         e.preventDefault();
+        setHasLoadedForgetPasswordModal(true);
         setShowForgetPasswordModal(true);
     };
 
@@ -155,10 +158,14 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            <ForgetPasswordModal
-                isOpen={showForgetPasswordModal}
-                onClose={() => setShowForgetPasswordModal(false)}
-            />
+            {(hasLoadedForgetPasswordModal || showForgetPasswordModal) && (
+                <Suspense fallback={null}>
+                    <ForgetPasswordModal
+                        isOpen={showForgetPasswordModal}
+                        onClose={() => setShowForgetPasswordModal(false)}
+                    />
+                </Suspense>
+            )}
         </div>
     );
 }

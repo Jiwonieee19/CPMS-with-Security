@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePage } from '@inertiajs/react';
 import companyLogo from '../assets/company-logo.png';
 import HelpSign from '../assets/icons/icon-help.png';
 import Door from '../assets/icons/icon-logout.png';
-import LogoutModal from '../Modals/LogoutModal';
-import WeatherGeneralNotificationModal from '../Modals/WeatherGeneralNotificationModal';
+
+const LogoutModal = lazy(() => import('../Modals/LogoutModal'));
+const WeatherGeneralNotificationModal = lazy(() => import('../Modals/WeatherGeneralNotificationModal'));
 
 const LayoutDashboard = new URL('../assets/icons/icon-dashboard.png', import.meta.url).href;
 const LayoutDashboardFocus = new URL('../assets/icons/icon-dashboard-focus.png', import.meta.url).href;
@@ -90,8 +91,10 @@ export default function Sidebar() {
     const { auth } = usePage().props || {};
     const role = normalizeRole(auth?.user?.staff_role ?? auth?.user?.role);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [hasLoadedLogoutModal, setHasLoadedLogoutModal] = useState(false);
     const [weatherNotification, setWeatherNotification] = useState(null);
     const [isWeatherNotificationOpen, setIsWeatherNotificationOpen] = useState(false);
+    const [hasLoadedWeatherNotificationModal, setHasLoadedWeatherNotificationModal] = useState(false);
 
     const allowedTitles = roleNavAccess[role] || [];
     const isAdmin = role === 'admin';
@@ -107,6 +110,14 @@ export default function Sidebar() {
         const userId = auth?.user?.staff_id ?? auth?.user?.id ?? 'unknown';
         return `weatherNotificationSeen:${userId}`;
     }, [auth?.user?.staff_id, auth?.user?.id]);
+
+    useEffect(() => {
+        if (showLogoutModal) setHasLoadedLogoutModal(true);
+    }, [showLogoutModal]);
+
+    useEffect(() => {
+        if (isWeatherNotificationOpen) setHasLoadedWeatherNotificationModal(true);
+    }, [isWeatherNotificationOpen]);
 
     useEffect(() => {
         if (!role || role === 'weather analyst') return;
@@ -228,22 +239,28 @@ export default function Sidebar() {
                 </a>
             </div>
 
-            {createPortal(
-                <LogoutModal
-                    isOpen={showLogoutModal}
-                    onClose={() => setShowLogoutModal(false)}
-                />,
-                document.body
-            )}
+            {(hasLoadedLogoutModal || showLogoutModal) &&
+                createPortal(
+                    <Suspense fallback={null}>
+                        <LogoutModal
+                            isOpen={showLogoutModal}
+                            onClose={() => setShowLogoutModal(false)}
+                        />
+                    </Suspense>,
+                    document.body
+                )}
 
-            {createPortal(
-                <WeatherGeneralNotificationModal
-                    isOpen={isWeatherNotificationOpen}
-                    onClose={handleCloseWeatherNotification}
-                    notification={weatherNotification}
-                />,
-                document.body
-            )}
+            {(hasLoadedWeatherNotificationModal || isWeatherNotificationOpen) &&
+                createPortal(
+                    <Suspense fallback={null}>
+                        <WeatherGeneralNotificationModal
+                            isOpen={isWeatherNotificationOpen}
+                            onClose={handleCloseWeatherNotification}
+                            notification={weatherNotification}
+                        />
+                    </Suspense>,
+                    document.body
+                )}
         </div>
     );
 }

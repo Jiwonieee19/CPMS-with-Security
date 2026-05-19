@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, lazy, useState, useEffect, useCallback } from 'react'
 import { Clock, CheckCircle, Menu, Star } from 'lucide-react'
 import AppSidebar from '../Components/AppSidebar'
-import ProceedProcessModal from '../Modals/ProceedProcessModal'
-import GradingProcessModal from '../Modals/GradingProcessModal'
 import { useToast } from '../Components/ToastProvider'
 import { router, usePage } from '@inertiajs/react'
+
+const ProceedProcessModal = lazy(() => import('../Modals/ProceedProcessModal'))
+const GradingProcessModal = lazy(() => import('../Modals/GradingProcessModal'))
 
 
 export default function ProcessPage() {
@@ -34,6 +35,17 @@ export default function ProcessPage() {
     const [sortColumn, setSortColumn] = useState(null)
     const [sortDirection, setSortDirection] = useState('asc')
     const toast = useToast()
+
+    const [hasLoadedProceedProcessModal, setHasLoadedProceedProcessModal] = useState(false)
+    const [hasLoadedGradingProcessModal, setHasLoadedGradingProcessModal] = useState(false)
+
+    useEffect(() => {
+        if (isProceedProcessModalOpen) setHasLoadedProceedProcessModal(true)
+    }, [isProceedProcessModalOpen])
+
+    useEffect(() => {
+        if (isGradingProcessModalOpen) setHasLoadedGradingProcessModal(true)
+    }, [isGradingProcessModalOpen])
 
     // Reset to page 1 when search term or tab changes
     useEffect(() => {
@@ -372,19 +384,27 @@ export default function ProcessPage() {
                 </div>
             </div>
 
-            <ProceedProcessModal
-                isOpen={isProceedProcessModalOpen}
-                onClose={() => setIsProceedProcessModalOpen(false)}
-                process={selectedProcess}
-                onComplete={fetchProcesses}
-            />
+            {(hasLoadedProceedProcessModal || isProceedProcessModalOpen) && (
+                <Suspense fallback={null}>
+                    <ProceedProcessModal
+                        isOpen={isProceedProcessModalOpen}
+                        onClose={() => setIsProceedProcessModalOpen(false)}
+                        process={selectedProcess}
+                        onComplete={fetchProcesses}
+                    />
+                </Suspense>
+            )}
 
-            <GradingProcessModal
-                isOpen={isGradingProcessModalOpen}
-                onClose={() => setIsGradingProcessModalOpen(false)}
-                batch={selectedGradingItem}
-                onComplete={fetchDriedBatches}
-            />
+            {(hasLoadedGradingProcessModal || isGradingProcessModalOpen) && (
+                <Suspense fallback={null}>
+                    <GradingProcessModal
+                        isOpen={isGradingProcessModalOpen}
+                        onClose={() => setIsGradingProcessModalOpen(false)}
+                        batch={selectedGradingItem}
+                        onComplete={fetchDriedBatches}
+                    />
+                </Suspense>
+            )}
         </div>
     )
 }

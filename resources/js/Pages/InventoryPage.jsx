@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, lazy, useState, useEffect, useCallback } from 'react'
 import { Package, Plus, Menu, Box, PlusCircle, CheckCircle, Truck } from 'lucide-react'
 import { router } from '@inertiajs/react'
 import AppSidebar from '../Components/AppSidebar'
-import AddNewEquipmentModal from '../Modals/AddNewEquipmentModal'
-import AddFreshBeanModal from '../Modals/AddFreshBeansModal'
-import AddStockEquipmentModal from '../Modals/AddStockEquipmentModal'
-import ProceedBeansBatchModal from '../Modals/ProceedBeansBatchModal'
-import ProceedBeansPickupModal from '../Modals/ProceedBeansPickupModal'
 import { useToast } from '../Components/ToastProvider'
+
+const AddNewEquipmentModal = lazy(() => import('../Modals/AddNewEquipmentModal'))
+const AddFreshBeanModal = lazy(() => import('../Modals/AddFreshBeansModal'))
+const AddStockEquipmentModal = lazy(() => import('../Modals/AddStockEquipmentModal'))
+const ProceedBeansBatchModal = lazy(() => import('../Modals/ProceedBeansBatchModal'))
+const ProceedBeansPickupModal = lazy(() => import('../Modals/ProceedBeansPickupModal'))
 
 
 export default function InventoryPage() {
@@ -30,6 +31,32 @@ export default function InventoryPage() {
     const [sortColumn, setSortColumn] = useState(null)
     const [sortDirection, setSortDirection] = useState('asc')
     const toast = useToast()
+
+    const [hasLoadedAddEquipmentModal, setHasLoadedAddEquipmentModal] = useState(false)
+    const [hasLoadedAddBeanModal, setHasLoadedAddBeanModal] = useState(false)
+    const [hasLoadedAddStockModal, setHasLoadedAddStockModal] = useState(false)
+    const [hasLoadedProceedBeansModal, setHasLoadedProceedBeansModal] = useState(false)
+    const [hasLoadedProceedPickupModal, setHasLoadedProceedPickupModal] = useState(false)
+
+    useEffect(() => {
+        if (isAddEquipmentModalOpen) setHasLoadedAddEquipmentModal(true)
+    }, [isAddEquipmentModalOpen])
+
+    useEffect(() => {
+        if (isAddBeanModalOpen) setHasLoadedAddBeanModal(true)
+    }, [isAddBeanModalOpen])
+
+    useEffect(() => {
+        if (isAddStockModalOpen) setHasLoadedAddStockModal(true)
+    }, [isAddStockModalOpen])
+
+    useEffect(() => {
+        if (isProceedBeansModalOpen) setHasLoadedProceedBeansModal(true)
+    }, [isProceedBeansModalOpen])
+
+    useEffect(() => {
+        if (isProceedPickupModalOpen) setHasLoadedProceedPickupModal(true)
+    }, [isProceedPickupModalOpen])
 
     // Reset to page 1 when search term or tab changes
     useEffect(() => {
@@ -390,38 +417,58 @@ export default function InventoryPage() {
                 </div>
             </div>
 
-            <AddNewEquipmentModal
-                isOpen={isAddEquipmentModalOpen}
-                onClose={() => setIsAddEquipmentModalOpen(false)}
-                onAdded={fetchEquipments}
-            />
+            {(hasLoadedAddEquipmentModal || isAddEquipmentModalOpen) && (
+                <Suspense fallback={null}>
+                    <AddNewEquipmentModal
+                        isOpen={isAddEquipmentModalOpen}
+                        onClose={() => setIsAddEquipmentModalOpen(false)}
+                        onAdded={fetchEquipments}
+                    />
+                </Suspense>
+            )}
 
-            <AddFreshBeanModal
-                isOpen={isAddBeanModalOpen}
-                onClose={() => setIsAddBeanModalOpen(false)}
-                onAdded={fetchBatches}
-            />
+            {(hasLoadedAddBeanModal || isAddBeanModalOpen) && (
+                <Suspense fallback={null}>
+                    <AddFreshBeanModal
+                        isOpen={isAddBeanModalOpen}
+                        onClose={() => setIsAddBeanModalOpen(false)}
+                        onAdded={fetchBatches}
+                    />
+                </Suspense>
+            )}
 
-            <AddStockEquipmentModal
-                isOpen={isAddStockModalOpen}
-                onClose={() => setIsAddStockModalOpen(false)}
-                equipment={selectedEquipment}
-                onStockAdded={fetchEquipments}
-            />
+            {(hasLoadedAddStockModal || isAddStockModalOpen) && (
+                <Suspense fallback={null}>
+                    <AddStockEquipmentModal
+                        isOpen={isAddStockModalOpen}
+                        onClose={() => setIsAddStockModalOpen(false)}
+                        equipment={selectedEquipment}
+                        onStockAdded={fetchEquipments}
+                    />
+                </Suspense>
+            )}
 
-            <ProceedBeansBatchModal
-                isOpen={isProceedBeansModalOpen}
-                onClose={() => setIsProceedBeansModalOpen(false)}
-                batch={selectedBean}
-                onProceed={fetchBatches}
-            />
+            {(hasLoadedProceedBeansModal || isProceedBeansModalOpen) && (
+                <Suspense fallback={null}>
+                    <ProceedBeansBatchModal
+                        isOpen={isProceedBeansModalOpen}
+                        onClose={() => setIsProceedBeansModalOpen(false)}
+                        batch={selectedBean}
+                        onProceed={fetchBatches}
+                    />
+                </Suspense>
+            )}
 
-            <ProceedBeansPickupModal
-                isOpen={isProceedPickupModalOpen}
-                onClose={() => setIsProceedPickupModalOpen(false)}
-                batchId={selectedPickupBeanId}
-                onPickedUp={fetchBatches}
-            />
+            {(hasLoadedProceedPickupModal || isProceedPickupModalOpen) && (
+                <Suspense fallback={null}>
+                    <ProceedBeansPickupModal
+                        isOpen={isProceedPickupModalOpen}
+                        onClose={() => setIsProceedPickupModalOpen(false)}
+                        batchId={selectedPickupBeanId}
+                        onPickedUp={fetchBatches}
+                    />
+                </Suspense>
+            )}
         </div>
     )
 }

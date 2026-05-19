@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, lazy, useState, useEffect, useCallback } from 'react';
 import { Edit, Eye, Trash2, Plus, Menu, RotateCcw } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import AppSidebar from '../Components/AppSidebar';
-import EditAccountModal from '../Modals/EditAccountModal';
-import ViewAccountModal from '../Modals/ViewAccountModal';
-import DeleteAccountModal from '../Modals/DeleteAccountModal';
-import CreateAccountModal from '../Modals/CreateAccountModal';
 import { useToast } from '../Components/ToastProvider';
+
+const EditAccountModal = lazy(() => import('../Modals/EditAccountModal'));
+const ViewAccountModal = lazy(() => import('../Modals/ViewAccountModal'));
+const DeleteAccountModal = lazy(() => import('../Modals/DeleteAccountModal'));
+const CreateAccountModal = lazy(() => import('../Modals/CreateAccountModal'));
 
 export default function AccountsPage() {
     const { auth } = usePage().props;
@@ -18,6 +19,10 @@ export default function AccountsPage() {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [hasLoadedEditModal, setHasLoadedEditModal] = useState(false);
+    const [hasLoadedViewModal, setHasLoadedViewModal] = useState(false);
+    const [hasLoadedDeleteModal, setHasLoadedDeleteModal] = useState(false);
+    const [hasLoadedCreateModal, setHasLoadedCreateModal] = useState(false);
     const [selectedAccountId, setSelectedAccountId] = useState(null);
     const [accountsData, setAccountsData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,6 +30,22 @@ export default function AccountsPage() {
     const [sortColumn, setSortColumn] = useState(null);
     const [sortDirection, setSortDirection] = useState('asc');
     const toast = useToast();
+
+    useEffect(() => {
+        if (isEditModalOpen) setHasLoadedEditModal(true);
+    }, [isEditModalOpen]);
+
+    useEffect(() => {
+        if (isViewModalOpen) setHasLoadedViewModal(true);
+    }, [isViewModalOpen]);
+
+    useEffect(() => {
+        if (isDeleteModalOpen) setHasLoadedDeleteModal(true);
+    }, [isDeleteModalOpen]);
+
+    useEffect(() => {
+        if (isCreateModalOpen) setHasLoadedCreateModal(true);
+    }, [isCreateModalOpen]);
 
     const fetchStaffs = useCallback(async () => {
         try {
@@ -363,35 +384,51 @@ export default function AccountsPage() {
                 </div>
             </div>
 
-            <EditAccountModal
-                isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
-                staffId={selectedAccountId}
-                accountsData={accountsData}
-                onUpdated={fetchStaffs}
-            />
+            {(hasLoadedEditModal || isEditModalOpen) && (
+                <Suspense fallback={null}>
+                    <EditAccountModal
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        staffId={selectedAccountId}
+                        accountsData={accountsData}
+                        onUpdated={fetchStaffs}
+                    />
+                </Suspense>
+            )}
 
-            <ViewAccountModal
-                isOpen={isViewModalOpen}
-                onClose={() => setIsViewModalOpen(false)}
-                staffId={selectedAccountId}
-                accountsData={accountsData}
-            />
+            {(hasLoadedViewModal || isViewModalOpen) && (
+                <Suspense fallback={null}>
+                    <ViewAccountModal
+                        isOpen={isViewModalOpen}
+                        onClose={() => setIsViewModalOpen(false)}
+                        staffId={selectedAccountId}
+                        accountsData={accountsData}
+                    />
+                </Suspense>
+            )}
 
-            <DeleteAccountModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                staffId={selectedAccountId}
-                accountsData={accountsData}
-                onStatusUpdated={fetchStaffs}
-            />
+            {(hasLoadedDeleteModal || isDeleteModalOpen) && (
+                <Suspense fallback={null}>
+                    <DeleteAccountModal
+                        isOpen={isDeleteModalOpen}
+                        onClose={() => setIsDeleteModalOpen(false)}
+                        staffId={selectedAccountId}
+                        accountsData={accountsData}
+                        onStatusUpdated={fetchStaffs}
+                    />
+                </Suspense>
+            )}
 
-            <CreateAccountModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                accountsData={accountsData}
-                onCreated={fetchStaffs}
-            />
+            {(hasLoadedCreateModal || isCreateModalOpen) && (
+                <Suspense fallback={null}>
+                    <CreateAccountModal
+                        isOpen={isCreateModalOpen}
+                        onClose={() => setIsCreateModalOpen(false)}
+                        accountsData={accountsData}
+                        onCreated={fetchStaffs}
+                    />
+                </Suspense>
+            )}
         </div>
     );
 }

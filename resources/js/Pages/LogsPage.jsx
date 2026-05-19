@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, lazy, useState, useEffect, useCallback } from 'react'
 import { Package, Plus, ArrowLeft, Box, PlusCircle, CheckCircle, Truck, Cloud, Clock, FileText, Eye, User, Download } from 'lucide-react'
 import { usePage } from '@inertiajs/react'
 import AppSidebar from '../Components/AppSidebar'
-import ViewLogsModal from '../Modals/ViewLogsModal'
 import LogsExportProvider, { useLogsExport } from '../Components/LogsExport'
+
+const ViewLogsModal = lazy(() => import('../Modals/ViewLogsModal'))
 
 
 function LogsPageContent({ initialTab = 'weather' }) {
@@ -16,6 +17,7 @@ function LogsPageContent({ initialTab = 'weather' }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const [isViewLogsModalOpen, setIsViewLogsModalOpen] = useState(false)
+    const [hasLoadedViewLogsModal, setHasLoadedViewLogsModal] = useState(false)
     const [selectedLogId, setSelectedLogId] = useState(null)
     const [logsData, setLogsData] = useState([])
     const [loading, setLoading] = useState(false)
@@ -23,6 +25,10 @@ function LogsPageContent({ initialTab = 'weather' }) {
     const [sortColumn, setSortColumn] = useState(null)
     const [sortDirection, setSortDirection] = useState('asc')
     const User = new URL('../assets/icons/icon-person.png', import.meta.url).href;
+
+    useEffect(() => {
+        if (isViewLogsModalOpen) setHasLoadedViewLogsModal(true)
+    }, [isViewLogsModalOpen])
 
     // Reset to page 1 when search term or tab changes
     useEffect(() => {
@@ -365,11 +371,15 @@ function LogsPageContent({ initialTab = 'weather' }) {
                 </div>
             </div>
 
-            <ViewLogsModal
-                isOpen={isViewLogsModalOpen}
-                onClose={() => setIsViewLogsModalOpen(false)}
-                logId={selectedLogId}
-            />
+            {(hasLoadedViewLogsModal || isViewLogsModalOpen) && (
+                <Suspense fallback={null}>
+                    <ViewLogsModal
+                        isOpen={isViewLogsModalOpen}
+                        onClose={() => setIsViewLogsModalOpen(false)}
+                        logId={selectedLogId}
+                    />
+                </Suspense>
+            )}
         </div>
     )
 }

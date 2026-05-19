@@ -1,14 +1,16 @@
-import { useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { Menu, Cloud } from 'lucide-react'
 import { router } from '@inertiajs/react'
 import AppSidebar from '../Components/AppSidebar'
-import WeatherDecisionModal from '../Modals/WeatherDecisionModal'
 import '../Styles/scrollbar.css'
+
+const WeatherDecisionModal = lazy(() => import('../Modals/WeatherDecisionModal'))
 
 export default function WeatherPage({ weather }) {
 
     const [activeTab, setActiveTab] = useState('temperature')
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [hasLoadedDecisionModal, setHasLoadedDecisionModal] = useState(false)
 
     // ================= REAL WEATHER DATA =================
     const hours = weather?.forecast?.forecastday?.[0]?.hour || [];
@@ -78,6 +80,7 @@ export default function WeatherPage({ weather }) {
     const Megaphone = new URL('../assets/icons/icon-megaphone.png', import.meta.url).href;
 
     const handleOpenModal = () => {
+        setHasLoadedDecisionModal(true)
         setIsModalOpen(true);
     };
 
@@ -208,10 +211,14 @@ export default function WeatherPage({ weather }) {
                 </div>
             </div>
 
-            <WeatherDecisionModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
+            {(hasLoadedDecisionModal || isModalOpen) && (
+                <Suspense fallback={null}>
+                    <WeatherDecisionModal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                    />
+                </Suspense>
+            )}
         </div>
     )
 }
