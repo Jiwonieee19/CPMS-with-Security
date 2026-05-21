@@ -23,7 +23,8 @@ class Authenticate
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Unauthenticated'
-                ], 401);
+                ], 401)->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                  ->header('Pragma', 'no-cache');
             }
             
             return redirect('/')->with('error', 'Please log in to access this page');
@@ -45,7 +46,8 @@ class Authenticate
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Session timed out due to inactivity'
-                ], 401);
+                ], 401)->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                  ->header('Pragma', 'no-cache');
             }
 
             return redirect('/')->with('error', 'Session timed out due to inactivity');
@@ -54,6 +56,10 @@ class Authenticate
         // Update last activity timestamp
         Session::put('last_activity', time());
 
-        return $next($request);
+        $response = $next($request);
+
+        return $response
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 }
