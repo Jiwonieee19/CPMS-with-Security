@@ -14,7 +14,9 @@ use App\Http\Controllers\WeatherDataController;
 use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
-    return inertia('LoginPage');
+    return inertia('LoginPage', [
+        'recaptcha_site_key' => config('services.recaptcha.site'),
+    ]);
 });
 
 // Authentication Routes

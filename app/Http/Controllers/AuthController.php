@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Http;
 use App\Models\Staffs;
 
 class AuthController extends Controller
@@ -15,6 +16,40 @@ class AuthController extends Controller
             'staffid' => 'required',
             'password' => 'required'
         ]);
+
+        // Verify Google reCAPTCHA v2 if configured
+        $recaptchaSecret = config('services.recaptcha.secret');
+        $recaptchaResponse = $request->input('g-recaptcha-response');
+
+        if ($recaptchaSecret) {
+            if (empty($recaptchaResponse)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'CAPTCHA required'
+                ], 400);
+            }
+
+            try {
+                $verify = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                    'secret' => $recaptchaSecret,
+                    'response' => $recaptchaResponse,
+                    'remoteip' => $request->ip(),
+                ]);
+
+                $body = $verify->json();
+                if (!($body['success'] ?? false)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'CAPTCHA verification failed'
+                    ], 400);
+                }
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'CAPTCHA verification error'
+                ], 500);
+            }
+        }
 
         $staffId = $request->input('staffid');
         $password = $request->input('password');

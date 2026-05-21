@@ -1,11 +1,11 @@
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import companyLogo from '../assets/company-logo.png';
 import loginBackground from '../assets/login-background.png';
 
 const ForgetPasswordModal = lazy(() => import('../Modals/ForgetPasswordModal'));
 
-export default function LoginPage() {
+export default function LoginPage(props) {
 
     const [formData, setFormData] = useState({
         staffid: '',
@@ -17,6 +17,58 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [recaptchaToken, setRecaptchaToken] = useState(null);
+    const [recaptchaWidgetId, setRecaptchaWidgetId] = useState(null);
+    const recaptchaSiteKey = props.recaptcha_site_key || null;
+
+    useEffect(() => {
+        if (!recaptchaSiteKey) return;
+
+        // don't add the script twice
+        if (document.getElementById('recaptcha-script')) {
+            if (window.grecaptcha && !recaptchaWidgetId) {
+                try {
+                    const id = window.grecaptcha.render('recaptcha-widget', {
+                        sitekey: recaptchaSiteKey,
+                        callback: (token) => setRecaptchaToken(token),
+                    });
+                    setRecaptchaWidgetId(id);
+                } catch (e) {
+                    // ignore render errors
+                }
+            }
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.id = 'recaptcha-script';
+        script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit';
+        script.async = true;
+        script.defer = true;
+
+        window.onRecaptchaLoad = function () {
+            if (window.grecaptcha) {
+                try {
+                    const id = window.grecaptcha.render('recaptcha-widget', {
+                        sitekey: recaptchaSiteKey,
+                        callback: (token) => setRecaptchaToken(token),
+                    });
+                    setRecaptchaWidgetId(id);
+                } catch (e) {
+                    // ignore
+                }
+            }
+        };
+
+        document.body.appendChild(script);
+
+        return () => {
+            try {
+                if (script && script.parentNode) script.parentNode.removeChild(script);
+            } catch (e) { }
+            delete window.onRecaptchaLoad;
+        };
+    }, [recaptchaSiteKey]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -35,6 +87,12 @@ export default function LoginPage() {
             // Get CSRF token from meta tag
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
+            if (recaptchaSiteKey && !recaptchaToken) {
+                setError('Please complete the CAPTCHA');
+                setIsLoading(false);
+                return;
+            }
+
             const response = await fetch('/login', {
                 method: 'POST',
                 headers: {
@@ -45,6 +103,7 @@ export default function LoginPage() {
                 body: JSON.stringify({
                     staffid: formData.staffid,
                     password: formData.password
+                    , 'g-recaptcha-response': recaptchaToken
                 })
             });
 
@@ -147,6 +206,12 @@ export default function LoginPage() {
                             FORGOT PASSWORD?
                         </button>
                     </div>
+
+                    {recaptchaSiteKey && (
+                        <div className="mb-4 flex justify-center" id="recaptcha-widget-wrapper">
+                            <div id="recaptcha-widget"></div>
+                        </div>
+                    )}
 
                     <button
                         onClick={handleSubmit}
