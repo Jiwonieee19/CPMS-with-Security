@@ -250,37 +250,37 @@ function LogsPageContent({ initialTab = 'weather' }) {
 
                     <div className="border-t-2 border-[#65524F] mb-6"></div>
 
-                    {/* Header */}
-                    <div className="grid grid-cols-5 text-[#E5B917] font-semibold text-lg mb-4 text-center">
+                    {/* Header: responsive gaps with minimum threshold */}
+                    <div className="grid grid-cols-5 gap-x-[clamp(0.75rem,1.5vw,4rem)] text-[#E5B917] font-semibold text-lg mb-4 text-center">
                         <div
-                            className='flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition'
+                            className='flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition min-w-0'
                             onClick={() => handleSort('id')}
                         >
                             LOG ID
                             <span className="text-xl">{getSortIcon('id')}</span>
                         </div>
                         <div
-                            className='flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition'
+                            className='flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition min-w-0'
                             onClick={() => handleSort('task')}
                         >
                             TASK
                             <span className="text-xl">{getSortIcon('task')}</span>
                         </div>
                         <div
-                            className='flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition'
+                            className='flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition min-w-0'
                             onClick={() => handleSort('timeSaved')}
                         >
                             TIME SAVED
                             <span className="text-xl">{getSortIcon('timeSaved')}</span>
                         </div>
                         <div
-                            className='flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition'
+                            className='flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition min-w-0'
                             onClick={() => handleSort('date')}
                         >
                             DATE
                             <span className="text-xl">{getSortIcon('date')}</span>
                         </div>
-                        <div className='ml-4'>ACTION</div>
+                        <div className='ml-4 min-w-0'>ACTION</div>
                     </div>
 
                     {/* Rows */}
@@ -297,28 +297,26 @@ function LogsPageContent({ initialTab = 'weather' }) {
                             paginatedData.map(item => (
                                 <div
                                     key={item.id}
-                                    className="grid grid-cols-5 text-center items-center
-                                               py-4 px-6 rounded-lg border-2 gap-18
-                                               border-[#65524F] text-[#F5F5DC]"
+                                    className="grid grid-cols-5 gap-x-[clamp(0.5rem,1.2vw,3.5rem)] text-center items-center py-3 sm:py-4 px-4 sm:px-6 rounded-lg border-2 border-[#65524F] text-[#F5F5DC]"
                                 >
-                                    <div>{item.id}</div>
-                                    <div>
+                                    <div className="min-w-0">{item.id}</div>
+                                    <div className="min-w-0 truncate">
                                         {(activeTab === 'inventory' || activeTab === 'process') && item.batch_id
                                             ? `${item.task}: ${item.batch_id}`
                                             : item.task
                                         }
                                     </div>
-                                    <div>{item.timeSaved}</div>
-                                    <div>{item.date}</div>
+                                    <div className="min-w-0">{item.timeSaved}</div>
+                                    <div className="min-w-0">{item.date}</div>
                                     <div className="flex justify-center gap-3">
                                         <Eye
                                             size={28}
-                                            className="cursor-pointer hover:scale-110 transition text-[#F5F5DC] relative top-[3px]"
+                                            className="cursor-pointer hover:scale-110 transition text-[#F5F5DC] relative top-[3px] flex-shrink-0"
                                             onClick={() => handleViewLog(item.log_id ?? item.id)}
                                         />
                                         <Download
                                             size={28}
-                                            className="cursor-pointer hover:scale-110 transition text-[#F5F5DC]"
+                                            className="cursor-pointer hover:scale-110 transition text-[#F5F5DC] flex-shrink-0"
                                             onClick={() => handleDownloadLog(item)}
                                         />
                                     </div>

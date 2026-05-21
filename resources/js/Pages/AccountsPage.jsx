@@ -247,37 +247,37 @@ export default function AccountsPage() {
 
                         <div className="border-t-2 border-[#65524F] mb-6"></div>
 
-                        {/* Table Header */}
-                        <div className="grid grid-cols-5 gap-16 mb-4 text-[#E5B917] font-semibold text-lg text-center">
+                        {/* Table Header: gaps shrink with viewport but not below a minimum */}
+                        <div className="grid grid-cols-5 gap-x-[clamp(0.75rem,1.5vw,4rem)] mb-4 text-[#E5B917] font-semibold text-lg text-center">
                             <div
-                                className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition"
+                                className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition min-w-0"
                                 onClick={() => handleSort('id')}
                             >
                                 ACOUNT ID
                                 <span className="text-xl">{getSortIcon('id')}</span>
                             </div>
                             <div
-                                className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition"
+                                className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition min-w-0"
                                 onClick={() => handleSort('fullname')}
                             >
                                 FULLNAME
                                 <span className="text-xl">{getSortIcon('fullname')}</span>
                             </div>
                             <div
-                                className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition"
+                                className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition min-w-0"
                                 onClick={() => handleSort('role')}
                             >
                                 ROLE
                                 <span className="text-xl">{getSortIcon('role')}</span>
                             </div>
                             <div
-                                className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition"
+                                className="flex items-center justify-center gap-2 cursor-pointer hover:text-[#d4a815] transition min-w-0"
                                 onClick={() => handleSort('status')}
                             >
                                 STATUS
                                 <span className="text-xl">{getSortIcon('status')}</span>
                             </div>
-                            <div className="text-center">ACTION</div>
+                            <div className="text-center min-w-0">ACTION</div>
                         </div>
 
                         {/* Loading State */}
@@ -297,32 +297,32 @@ export default function AccountsPage() {
                                             return (
                                                 <div
                                                     key={account.id}
-                                                    className="grid grid-cols-5 gap-28 bg-[#3E2723] bg-opacity-50 py-4 px-6 rounded-lg text-[#F5F5DC] items-center text-center border-2 border-[#65524F]"
+                                                    className="grid grid-cols-5 gap-x-[clamp(0.5rem,1.2vw,3.5rem)] bg-[#3E2723] bg-opacity-50 py-3 sm:py-4 px-4 sm:px-6 rounded-lg text-[#F5F5DC] items-center text-center border-2 border-[#65524F]"
                                                 >
-                                                    <div>{account.id}</div>
-                                                    <div>{account.fullname}</div>
-                                                    <div>{account.role}</div>
-                                                    <div className={account.status.toLowerCase() === 'inactive' ? 'text-[#FF6769]' : ''}>
+                                                    <div className="min-w-0">{account.id}</div>
+                                                    <div className="min-w-0 truncate">{account.fullname}</div>
+                                                    <div className="min-w-0">{account.role}</div>
+                                                    <div className={account.status.toLowerCase() === 'inactive' ? 'text-[#FF6769] min-w-0' : 'min-w-0'}>
                                                         {account.status}
                                                     </div>
                                                     <div className="flex justify-center gap-3">
                                                         <button
                                                             onClick={() => handleEdit(account.staff_id, account.status)}
                                                             disabled={isOwnAccount}
-                                                            className={`hover:scale-110 transition ${account.status.toLowerCase() === 'inactive' || isOwnAccount ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            className={`hover:scale-110 transition flex-shrink-0 ${account.status.toLowerCase() === 'inactive' || isOwnAccount ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         >
                                                             <Edit size={28} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleView(account.staff_id)}
-                                                            className="hover:scale-110 transition"
+                                                            className="hover:scale-110 transition flex-shrink-0"
                                                         >
                                                             <Eye size={28} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(account.staff_id)}
                                                             disabled={isOwnAccount}
-                                                            className={`hover:scale-110 transition ${isOwnAccount ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            className={`hover:scale-110 transition flex-shrink-0 ${isOwnAccount ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         >
                                                             {account.status.toLowerCase() === 'inactive' ? (
                                                                 <RotateCcw size={28} />

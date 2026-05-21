@@ -166,8 +166,7 @@ export default function WeatherPage({ weather }) {
                     </p>
 
                     <div
-                        className="border-2 border-[#65524F] rounded overflow-x-auto relative pt-10 pb-0"
-                        style={{ width: `${visibleBars * barWidth}px` }}
+                        className="border-2 border-[#65524F] rounded overflow-x-auto relative pt-10 pb-0 w-full"
                     >
                         {/* Background stripes */}
                         <div
