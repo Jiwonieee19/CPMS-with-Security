@@ -106,6 +106,9 @@ class AuthController extends Controller
                 'staff_email' => 'admin@system.com'
             ]);
 
+            // Track last activity for idle timeout enforcement
+            Session::put('last_activity', time());
+
             return response()->json([
                 'success' => true,
                 'message' => 'Login successful',
@@ -153,6 +156,9 @@ class AuthController extends Controller
             'staff_role' => $staff->staff_role,
             'staff_email' => $staff->staff_email
         ]);
+
+        // Track last activity for idle timeout enforcement
+        Session::put('last_activity', time());
 
         return response()->json([
             'success' => true,

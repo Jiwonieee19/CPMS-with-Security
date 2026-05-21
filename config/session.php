@@ -34,6 +34,19 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 120),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Session Idle Timeout (seconds)
+    |--------------------------------------------------------------------------
+    |
+    | Number of seconds of inactivity after which the server will consider
+    | the session idle and force a logout. This complements the cookie
+    | lifetime and provides server-side enforcement of inactivity logout.
+    |
+    */
+    'idle_timeout' => (int) env('SESSION_IDLE_TIMEOUT', 20), 
+    //1200 seconds = 20 minutes but for presentation, e 10sec sa
+
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
     /*
