@@ -20,7 +20,7 @@ Route::get('/', function () {
 });
 
 // Authentication Routes
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout.post');
 Route::get('/auth/check', [AuthController::class, 'checkAuth'])->name('auth.check');

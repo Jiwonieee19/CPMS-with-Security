@@ -38,6 +38,8 @@ return [
     'recaptcha' => [
         'site' => env('RECAPTCHA_SITE_KEY'),
         'secret' => env('RECAPTCHA_SECRET'),
+        'verify_ssl' => env('RECAPTCHA_VERIFY_SSL', true),
+        'fail_open_local' => env('RECAPTCHA_FAIL_OPEN_LOCAL', true),
     ],
 
 ];

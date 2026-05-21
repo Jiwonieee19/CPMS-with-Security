@@ -6,10 +6,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Log;
 use App\Models\Staffs;
 
 class AuthController extends Controller
 {
+    private const MAX_LOGIN_ATTEMPTS = 5;
+    private const LOGIN_LOCKOUT_SECONDS = 300;
+
     public function login(Request $request)
     {
         $request->validate([
@@ -30,11 +35,24 @@ class AuthController extends Controller
             }
 
             try {
-                $verify = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                $httpClient = Http::asForm()->timeout(10);
+
+                if (!config('services.recaptcha.verify_ssl', true)) {
+                    $httpClient = $httpClient->withoutVerifying();
+                }
+
+                $verify = $httpClient->post('https://www.google.com/recaptcha/api/siteverify', [
                     'secret' => $recaptchaSecret,
                     'response' => $recaptchaResponse,
                     'remoteip' => $request->ip(),
                 ]);
+
+                if ($verify->failed()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'CAPTCHA verification failed'
+                    ], 400);
+                }
 
                 $body = $verify->json();
                 if (!($body['success'] ?? false)) {
@@ -43,19 +61,42 @@ class AuthController extends Controller
                         'message' => 'CAPTCHA verification failed'
                     ], 400);
                 }
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'CAPTCHA verification error'
-                ], 500);
+            } catch (\Throwable $e) {
+                $failOpenLocal = app()->environment(['local', 'testing'])
+                    && config('services.recaptcha.fail_open_local', true);
+
+                if ($failOpenLocal) {
+                    Log::warning('CAPTCHA verification skipped due to local/testing transport error.', [
+                        'error' => $e->getMessage(),
+                    ]);
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'CAPTCHA verification error'
+                    ], 500);
+                }
+
             }
+
         }
 
         $staffId = $request->input('staffid');
         $password = $request->input('password');
+        $lockoutKey = $this->getLoginLockoutKey($request, $staffId);
+
+        if (RateLimiter::tooManyAttempts($lockoutKey, self::MAX_LOGIN_ATTEMPTS)) {
+            $seconds = RateLimiter::availableIn($lockoutKey);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many failed login attempts. Try again in ' . $seconds . ' seconds.'
+            ], 429);
+        }
 
         // Check for static admin account
         if ($staffId === '0' && $password === 'superadmin') {
+            RateLimiter::clear($lockoutKey);
+
             // Create session for admin
             Session::put('user', [
                 'staff_id' => 0,
@@ -76,6 +117,8 @@ class AuthController extends Controller
         $staff = Staffs::where('staff_id', $staffId)->first();
 
         if (!$staff) {
+            RateLimiter::hit($lockoutKey, self::LOGIN_LOCKOUT_SECONDS);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid staff ID or password'
@@ -92,11 +135,15 @@ class AuthController extends Controller
 
         // Verify password with hashing
         if (!Hash::check($password, $staff->staff_password)) {
+            RateLimiter::hit($lockoutKey, self::LOGIN_LOCKOUT_SECONDS);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid staff ID or password'
             ], 401);
         }
+
+        RateLimiter::clear($lockoutKey);
 
         // Create session for authenticated user
         Session::put('user', [
@@ -134,5 +181,10 @@ class AuthController extends Controller
         return response()->json([
             'authenticated' => false
         ]);
+    }
+
+    private function getLoginLockoutKey(Request $request, string $staffId): string
+    {
+        return 'login-lockout:' . strtolower(trim($staffId)) . '|' . $request->ip();
     }
 }
