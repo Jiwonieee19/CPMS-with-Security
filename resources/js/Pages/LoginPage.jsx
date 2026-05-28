@@ -93,6 +93,7 @@ export default function LoginPage(props) {
                 return;
             }
 
+            // captcha verification is done server-side, we just need to pass the token
             const response = await fetch('/login', {
                 method: 'POST',
                 headers: {

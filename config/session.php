@@ -45,7 +45,7 @@ return [
     |
     */
     'idle_timeout' => (int) env('SESSION_IDLE_TIMEOUT', 20), 
-    //1200 seconds = 20 minutes but for presentation, e 10sec sa
+    //1200 seconds = 20 minutes but for presentation, e 20sec sa
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 

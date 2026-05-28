@@ -24,7 +24,7 @@ class Authenticate
                 return response()->json([
                     'message' => 'Unauthenticated'
                 ], 401)->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-                  ->header('Pragma', 'no-cache');
+                  ->header('Pragma', 'no-cache'); // Prevent caching after logout
             }
             
             return redirect('/')->with('error', 'Please log in to access this page');
@@ -43,6 +43,7 @@ class Authenticate
 
             Session::flush();
 
+            // LOGOUT TIMEOUT EVENT
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Session timed out due to inactivity'

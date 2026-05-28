@@ -12,7 +12,7 @@ use App\Models\Staffs;
 
 class AuthController extends Controller
 {
-    private const MAX_LOGIN_ATTEMPTS = 5;
+    private const MAX_LOGIN_ATTEMPTS = 5; // Max attempts before lockout
     private const LOGIN_LOCKOUT_SECONDS = 300;
 
     public function login(Request $request)
@@ -90,7 +90,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Too many failed login attempts. Try again in ' . $seconds . ' seconds.'
-            ], 429);
+            ], 429); // 5mins retry
         }
 
         // Check for static admin account
@@ -118,6 +118,7 @@ class AuthController extends Controller
 
         // Check database for regular users
         $staff = Staffs::where('staff_id', $staffId)->first();
+        // SELECT * FROM staff WHERE staff_id = '12345' LIMIT 1;
 
         if (!$staff) {
             RateLimiter::hit($lockoutKey, self::LOGIN_LOCKOUT_SECONDS);

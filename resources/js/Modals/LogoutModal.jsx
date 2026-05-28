@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
-export default function LogoutModal({ isOpen, onClose, onConfirm }) {
+export default function LogoutModal({
+    isOpen,
+    onClose,
+    onConfirm,
+    title = 'LOGOUT',
+    message = 'Are you sure you want to log out?',
+    confirmLabel = 'LOGOUT',
+    cancelLabel = 'CANCEL',
+}) {
     const [isRendering, setIsRendering] = useState(isOpen);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -44,7 +52,7 @@ export default function LogoutModal({ isOpen, onClose, onConfirm }) {
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-3xl font-bold text-[#E5B917]">
-                        LOGOUT
+                        {title}
                     </h2>
                     <button
                         onClick={onClose}
@@ -57,7 +65,7 @@ export default function LogoutModal({ isOpen, onClose, onConfirm }) {
                 {/* Content */}
                 <div className="mb-8 text-center">
                     <p className="text-[#F5F5DC] text-lg mb-2">
-                        Are you sure you want to log out?
+                        {message}
                     </p>
                     {/* <p className="text-[#F5F5DC] text-sm mt-4">
                         You will need to log in again to access the system.
@@ -70,13 +78,13 @@ export default function LogoutModal({ isOpen, onClose, onConfirm }) {
                         onClick={handleCancel}
                         className="py-3 rounded-2xl bg-[#311F1C] text-[#F5F5DC] text-xl font-semibold hover:bg-[#E5B917] hover:text-[#311F1C] transition"
                     >
-                        CANCEL
+                        {cancelLabel}
                     </button>
                     <button
                         onClick={handleConfirm}
                         className="py-3 rounded-2xl bg-[#311F1C] text-[#E5B917] text-xl font-semibold hover:bg-[#E5B917] hover:text-[#311F1C] transition"
                     >
-                        LOGOUT
+                        {confirmLabel}
                     </button>
                 </div>
             </div>
